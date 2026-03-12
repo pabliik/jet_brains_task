@@ -46,3 +46,8 @@ def subsample_tokens(tokens, freq, threshold=1e-5):
             subsampled.append(word)
             
     return subsampled
+
+def vocab(freq):
+    word2ind = {w: i for i, w in enumerate(freq.keys())} # word to ind exp: "fox" -> 0
+    ind2word = {i: w for w, i in word2ind.items()} # ind to word exp: 0 -> "fox"
+    return word2ind, ind2word
