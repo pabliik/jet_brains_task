@@ -76,3 +76,8 @@ def build_sampling_table(freq, word2ind, table_size=1_000_000):
         table.extend([word2ind[word]] * n)
         
     return np.array(table)
+
+def sigmoid(x):
+    # Clip values to prevent overflow in exp
+    x = np.clip(x, -10, 10)
+    return 1 / (1 + np.exp(-x))
