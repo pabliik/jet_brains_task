@@ -81,3 +81,47 @@ def sigmoid(x):
     # Clip values to prevent overflow in exp
     x = np.clip(x, -10, 10)
     return 1 / (1 + np.exp(-x))
+
+def update_batch(center_batch, context_batch, negatives_batch, W_in, W_out, lr):
+    """
+    Forward pass, loss calculation and backpropagation.
+    """
+    
+    u_c = W_in[center_batch]
+    v_pos = W_out[context_batch]
+    v_neg = W_out[negatives_batch]         
+    
+    # Forward Pass
+    # Positive contexts: dot product of each center with its context
+    score_pos = np.sum(u_c * v_pos, axis=1) 
+    prob_pos = sigmoid(score_pos)           
+    
+    # Negative contexts: dot products using Einstein summation
+    score_neg = np.einsum('bd,bkd->bk', u_c, v_neg) 
+    prob_neg = sigmoid(score_neg)                   
+    
+    # Compute Loss
+    loss_pos = -np.log(prob_pos + 1e-10)
+    loss_neg = -np.sum(np.log(1 - prob_neg + 1e-10), axis=1)
+    batch_loss = np.sum(loss_pos + loss_neg)
+    
+    # Backward Pass
+    error_pos = prob_pos - 1
+    error_neg = prob_neg - 0
+    
+    # Gradients for W_out (context and negative matrices)
+    grad_v_pos = error_pos[:, None] * u_c
+    grad_v_neg = error_neg[:, :, None] * u_c[:, None, :]
+    
+    # Gradients for W_in (center matrix)
+    grad_u_c = (error_pos[:, None] * v_pos) + np.sum(error_neg[:, :, None] * v_neg, axis=1)
+    
+    # Apply Updates (Using np.add.at for duplicate indices in a batch)
+    np.add.at(W_in, center_batch, -lr * grad_u_c)
+    np.add.at(W_out, context_batch, -lr * grad_v_pos)
+    
+    flat_neg_indices = negatives_batch.flatten()
+    flat_grad_v_neg = grad_v_neg.reshape(-1, W_out.shape[1])
+    np.add.at(W_out, flat_neg_indices, -lr * flat_grad_v_neg)
+    
+    return batch_loss
