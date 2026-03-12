@@ -16,4 +16,8 @@ def get_text_data():
         text = f.read("text8").decode("utf-8")
     
     # Using only first 5 million characters
-    return text[:5_000_000] 
+    return text[:5_000_000]
+
+def tokenize(text):
+    text = text.lower()
+    return re.findall(r'\b[a-z]+\b', text) # Keeps only text, no punctuation or numbers 
