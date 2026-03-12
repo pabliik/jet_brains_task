@@ -21,3 +21,8 @@ def get_text_data():
 def tokenize(text):
     text = text.lower()
     return re.findall(r'\b[a-z]+\b', text) # Keeps only text, no punctuation or numbers 
+
+def freq_count(tokens, min_count=5):
+    """Counts frequencies and removes very rare words."""
+    freq = Counter(tokens)
+    return {w: c for w, c in freq.items() if c >= min_count}
