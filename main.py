@@ -26,3 +26,23 @@ def freq_count(tokens, min_count=5):
     """Counts frequencies and removes very rare words."""
     freq = Counter(tokens)
     return {w: c for w, c in freq.items() if c >= min_count}
+
+def subsample_tokens(tokens, freq, threshold=1e-5):
+    """
+    Randomly drops highly frequent words such as [the, a, an, etc] to speed up training 
+    and improve representations of less frequent words.
+    """
+    total_tokens = sum(freq.values())
+    subsampled = []
+    
+    for word in tokens:
+        if word not in freq:
+            continue
+        
+        word_fraction = freq[word] / total_tokens # calculate how frequent the word is in fraction exp: 0,05 for 5 %
+        p_discard = max(0, 1 - np.sqrt(threshold / word_fraction)) # get probability between 0 and 1
+        
+        if np.random.rand() > p_discard:
+            subsampled.append(word)
+            
+    return subsampled
