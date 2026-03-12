@@ -153,3 +153,6 @@ def train(pairs, table, W_in, W_out, epochs=5, K=5, initial_lr=0.025, batch_size
             
         avg_loss = total_loss / total_pairs
         print(f"Epoch {epoch+1}/{epochs} | Loss: {avg_loss:.4f} | LR: {lr:.4f}")
+
+def cosine_similarity(v1, v2):
+    return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-10)
