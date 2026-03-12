@@ -171,3 +171,36 @@ def nearest_neighbors(word, word2ind, ind2word, W_in, n=5):
     # Get top N indices (excluding the word itself)
     top_indices = np.argsort(-sims)[1:n+1]
     return [(ind2word[i], sims[i]) for i in top_indices]
+
+if __name__ == "__main__":
+    print("Loading data...")
+    text = get_text_data()
+    tokens = tokenize(text)
+    
+    print("Building vocabulary and subsampling...")
+    freq = freq_count(tokens, min_count=5) # Increased min_count for better quality
+    subsampled_tokens = subsample_tokens(tokens, freq)
+    word2ind, ind2word = vocab(freq)
+    
+    print(f"Vocabulary size: {len(word2ind)}")
+    
+    print("Generating pairs and sampling table...")
+    pairs = get_pairs(subsampled_tokens, word2ind)
+    table = build_sampling_table(freq, word2ind)
+    
+    print(f"Total training pairs: {len(pairs)}")
+    
+    # Initialize weights
+    vocab_size = len(word2ind)
+    embed_dim = 100 
+    
+    # It is common practice to initialize W_in with small random numbers 
+    # and W_out with zeros in Skip-Gram
+    W_in  = np.random.uniform(-0.05, 0.05, (vocab_size, embed_dim))
+    W_out = np.zeros((vocab_size, embed_dim))
+    
+    print("Starting training...")
+    train(pairs, table, W_in, W_out, epochs=5, K=5, initial_lr=0.025, batch_size=1024)
+    
+    print("\nEvaluating 'king' nearest neighbors:")
+    print(nearest_neighbors("king", word2ind, ind2word, W_in))
