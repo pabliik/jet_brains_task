@@ -51,3 +51,17 @@ def vocab(freq):
     word2ind = {w: i for i, w in enumerate(freq.keys())} # word to ind exp: "fox" -> 0
     ind2word = {i: w for w, i in word2ind.items()} # ind to word exp: 0 -> "fox"
     return word2ind, ind2word
+
+def get_pairs(tokens, word2ind, window_size=5):
+    """Generates (center_word, context_word) pairs with window size 5."""
+    pairs = []
+    indices = [word2ind[w] for w in tokens if w in word2ind] # takes only indices
+    
+    for i, center in enumerate(indices):
+        left = max(0, i - window_size) # calculate how far it will go to the left
+        right = min(len(indices), i + window_size + 1) # how far it will go to the right
+        
+        for j in range(left, right):
+            if i != j:
+                pairs.append((center, indices[j]))
+    return pairs
