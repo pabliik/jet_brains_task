@@ -65,3 +65,14 @@ def get_pairs(tokens, word2ind, window_size=5):
             if i != j:
                 pairs.append((center, indices[j]))
     return pairs
+
+def build_sampling_table(freq, word2ind, table_size=1_000_000):
+    """Builds a table for negative sampling based on U(w)^0.75."""
+    table = []
+    total = sum([c**0.75 for c in freq.values()])
+    
+    for word, count in freq.items():
+        n = int((count**0.75 / total) * table_size)
+        table.extend([word2ind[word]] * n)
+        
+    return np.array(table)
