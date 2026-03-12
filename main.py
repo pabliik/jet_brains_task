@@ -125,3 +125,31 @@ def update_batch(center_batch, context_batch, negatives_batch, W_in, W_out, lr):
     np.add.at(W_out, flat_neg_indices, -lr * flat_grad_v_neg)
     
     return batch_loss
+
+def train(pairs, table, W_in, W_out, epochs=5, K=5, initial_lr=0.025, batch_size=1024):
+    """Batched training loop with learning rate decay."""
+    total_pairs = len(pairs)
+    pairs_arr = np.array(pairs) # Convert to numpy array for faster slicing
+    
+    for epoch in range(epochs):
+        np.random.shuffle(pairs_arr)
+        total_loss = 0
+        
+        # Linear Learning Rate Decay
+        lr = max(initial_lr * (1 - epoch / epochs), 0.0001) 
+        
+        for i in range(0, total_pairs, batch_size):
+            batch_pairs = pairs_arr[i:i + batch_size] 
+            actual_batch_size = len(batch_pairs) # not always the batch size will be 1024
+            
+            centers = batch_pairs[:, 0]
+            contexts = batch_pairs[:, 1]
+            
+            # Sample negatives for the entire batch at once
+            negatives = np.random.choice(table, size=(actual_batch_size, K))
+
+            loss = update_batch(centers, contexts, negatives, W_in, W_out, lr)
+            total_loss += loss
+            
+        avg_loss = total_loss / total_pairs
+        print(f"Epoch {epoch+1}/{epochs} | Loss: {avg_loss:.4f} | LR: {lr:.4f}")
