@@ -156,3 +156,18 @@ def train(pairs, table, W_in, W_out, epochs=5, K=5, initial_lr=0.025, batch_size
 
 def cosine_similarity(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-10)
+
+def nearest_neighbors(word, word2ind, ind2word, W_in, n=5):
+    if word not in word2ind:
+        return f"'{word}' not in vocabulary."
+    
+    idx = word2ind[word]
+    vec = W_in[idx]
+    
+    # Vectorized similarity computation
+    norms = np.linalg.norm(W_in, axis=1)
+    sims = np.dot(W_in, vec) / (norms * np.linalg.norm(vec) + 1e-10)
+    
+    # Get top N indices (excluding the word itself)
+    top_indices = np.argsort(-sims)[1:n+1]
+    return [(ind2word[i], sims[i]) for i in top_indices]
